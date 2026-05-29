@@ -16,15 +16,18 @@ namespace BookingSystem.Tests.Application
             // Arrange: จำลอง (Mock) Repository
             var mockRepo = new Mock<IBookingRepository>();
             var service = new BookingService(mockRepo.Object);
-            var customerName = "Alice";
-            var timeSlot = DateTime.UtcNow.AddDays(2);
+            int userId = 1;
+            int resourceId = 1;
+            var checkInTime = DateTime.UtcNow.AddDays(2);
+            var checkOutTime = DateTime.UtcNow.AddDays(2).AddHours(2);
 
             // Act: ทดสอบเรียกใช้ Service
-            var result = await service.CreateBookingAsync(customerName, timeSlot);
+            var result = await service.CreateBookingAsync(userId, resourceId, checkInTime, checkOutTime);
 
             // Assert: ตรวจสอบว่า Entity ถูกสร้างและคืนค่ากลับมาถูกต้อง
             Assert.NotNull(result);
-            Assert.Equal(customerName, result.CustomerName);
+            Assert.Equal(userId, result.UserId);
+            Assert.Equal(resourceId, result.ResourceId);
 
             // ตรวจสอบว่าฟังก์ชัน AddAsync และ SaveChangesAsync ถูกเรียกใช้งานจริงๆ อย่างละ 1 ครั้ง
             mockRepo.Verify(r => r.AddAsync(It.IsAny<Booking>()), Times.Once);

@@ -36,6 +36,9 @@ namespace BookingSystem.Domain.Entities
         public DateTime? RefreshTokenExpiresAt { get; set; }
         public DateTime? LastLoginAt { get; set; }
 
+        // Navigation Properties
+        public ICollection<Booking> Bookings { get; set; } = new List<Booking>();
+
         protected User() { } // 👈 2. เปลี่ยนชื่อ Constructor ให้ตรงกับคลาส
 
         public User(string name, string email, string password, UserRoles role = UserRoles.User) // 👈 3. เปลี่ยนชื่อ Constructor ด้วย

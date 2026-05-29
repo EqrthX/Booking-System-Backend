@@ -1,35 +1,62 @@
 ﻿using BookingSystem.Domain.Enums;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace BookingSystem.Domain.Entities
 {
+    [Table("Bookings")]
     public class Booking
     {
+        [Key]
         public Guid Id { get; private set; }
-        public string CustomerName { get; private set; } = string.Empty;
-        public DateTime TimeSlot { get; private set; }
-        public BookingStatus Status { get; private set; }
 
-        public Booking(string customerName, DateTime timeSlot)
+        [ForeignKey(nameof(User))]
+        public int UserId { get; private set; }
+
+        [ForeignKey(nameof(Resource))]
+        public int ResourceId { get; private set; }
+
+        public DateTime BookingDate { get; private set; }
+        public DateTime CheckInTime { get; private set; }
+        public DateTime CheckOutTime { get; private set; }
+
+        public BookingStatus Status { get; private set; } = BookingStatus.Confirmed;
+
+        [MaxLength(500)]
+        public string? Notes { get; set; }
+
+        public DateTime CreatedAt { get; private set; } = DateTime.UtcNow;
+        public DateTime? ConfirmedAt { get; set; }
+        public DateTime? CancelledAt { get; set; }
+
+        // Navigation Properties
+        public User? User { get; set; }
+        public Resource? Resource { get; set; }
+
+        protected Booking() { }
+
+        public Booking(int userId, int resourceId, DateTime checkInTime, DateTime checkOutTime)
         {
-            if(string.IsNullOrWhiteSpace(customerName))
-            {
-                throw new ArgumentException("Customer name is required.", nameof(customerName));
-            }
+            if (userId <= 0)
+                throw new ArgumentException("User ID must be valid.", nameof(userId));
 
-            if(timeSlot < DateTime.UtcNow)
-            {
-                throw new ArgumentException("Time slot must be in the future.", nameof(timeSlot));
-            }
+            if (resourceId <= 0)
+                throw new ArgumentException("Resource ID must be valid.", nameof(resourceId));
+
+            if (checkInTime >= checkOutTime)
+                throw new ArgumentException("Check-in time must be before check-out time.");
+
+            if (checkInTime < DateTime.UtcNow)
+                throw new ArgumentException("Check-in time must be in the future.");
 
             Id = Guid.NewGuid();
-            CustomerName = customerName;
-            TimeSlot = timeSlot;
-            Status = BookingStatus.Pending;
+            UserId = userId;
+            ResourceId = resourceId;
+            BookingDate = DateTime.UtcNow;
+            CheckInTime = checkInTime;
+            CheckOutTime = checkOutTime;
+            Status = BookingStatus.Confirmed;
+            ConfirmedAt = DateTime.UtcNow;
         }
 
         public void Confirm()
@@ -38,6 +65,7 @@ namespace BookingSystem.Domain.Entities
                 throw new InvalidOperationException("Cannot confirm a cancelled booking.");
 
             Status = BookingStatus.Confirmed;
+            ConfirmedAt = DateTime.UtcNow;
         }
 
         public void Cancel()
@@ -46,6 +74,7 @@ namespace BookingSystem.Domain.Entities
                 throw new InvalidOperationException("Cannot cancel a confirmed booking.");
 
             Status = BookingStatus.Cancelled;
+            CancelledAt = DateTime.UtcNow;
         }
     }
 }

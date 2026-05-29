@@ -8,7 +8,9 @@ namespace BookingSystem.Domain.DTOs
 {
     public class CreateBookingRequest
     {
-        public string CustomerName { get; set; } = string.Empty;
-        public DateTime TimeSlot { get; set; }
+        public int UserId { get; set; }
+        public int ResourceId { get; set; }
+        public DateTime CheckInTime { get; set; }
+        public DateTime CheckOutTime { get; set; }
     }
 }

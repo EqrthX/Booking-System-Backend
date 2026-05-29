@@ -21,14 +21,14 @@ namespace BookingSystem.Api.Controllers
         [HttpPost]
         public async Task<IActionResult> CreateBooking([FromBody] CreateBookingRequest request)
         {
-            if (request.Equals(null))
+            if (request == null)
             {
                 return BadRequest("กรุณากรอกข้อมูลให้ครบ");
             }
 
             try
             {
-                var booking = await _bookingService.CreateBookingAsync(request.CustomerName, request.TimeSlot);
+                var booking = await _bookingService.CreateBookingAsync(request.UserId, request.ResourceId, request.CheckInTime, request.CheckOutTime);
 
                 await _hubContext.Clients.All.SendAsync("BookingAdded", booking);
                 return Ok(booking);

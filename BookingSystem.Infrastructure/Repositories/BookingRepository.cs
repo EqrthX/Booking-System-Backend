@@ -1,5 +1,6 @@
 ﻿using BookingSystem.Application.Interfaces;
 using BookingSystem.Domain.Entities;
+using BookingSystem.Domain.Enums;
 using BookingSystem.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 
@@ -19,15 +20,20 @@ namespace BookingSystem.Infrastructure.Repositories
 
         public async Task AddAsync(Booking booking)
         {
-            var existingBooking = await _context.Bookings.FirstOrDefaultAsync(b => b.CustomerName == booking.CustomerName && b.TimeSlot == booking.TimeSlot);
-            if (existingBooking == null)
+            // Check if resource is already booked during this time slot
+            var existingBooking = await _context.Bookings
+                .Where(b => b.ResourceId == booking.ResourceId
+                    && b.Status == BookingStatus.Confirmed
+                    && b.CheckInTime < booking.CheckOutTime
+                    && b.CheckOutTime > booking.CheckInTime)
+                .FirstOrDefaultAsync();
+
+            if (existingBooking != null)
             {
-                await _context.Bookings.AddAsync(booking);
-            } 
-            else
-            {
-                throw new InvalidOperationException("มีลูกค้าจองเวลานี้ไปเรียบร้อยแล้ว กรุณาเลือกเวลาใหม่");
+                throw new InvalidOperationException("ห้องนี้ถูกจองไปแล้วในเวลานี้ กรุณาเลือกเวลาใหม่");
             }
+
+            await _context.Bookings.AddAsync(booking);
         }
 
         public async Task SaveChangesAsync()
